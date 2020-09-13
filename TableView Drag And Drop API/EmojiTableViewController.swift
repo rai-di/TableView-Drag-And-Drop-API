@@ -9,7 +9,7 @@
 import UIKit
 import MobileCoreServices
 
-class EmojiTableViewController: UITableViewController, UITableViewDragDelegate, UITableViewDropDelegate {
+class EmojiTableViewController: UITableViewController {
     
     var emojiArray = [ "😀 😀 😀 😀 😀 😀 ",
                        "😇 😇 😇 😇 😇 😇",
@@ -38,6 +38,22 @@ class EmojiTableViewController: UITableViewController, UITableViewDragDelegate, 
         return emojiArray.count
     }
 
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "emojiCell", for: indexPath)
+        cell.textLabel!.text = emojiArray[ indexPath.row ]
+        return cell
+    }
+
+    
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+
+}
+
+
+extension EmojiTableViewController : UITableViewDragDelegate {
     func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
         let emoji = emojiArray[ indexPath.row ]
         let data = emoji.data(using: .utf8)
@@ -52,7 +68,9 @@ class EmojiTableViewController: UITableViewController, UITableViewDragDelegate, 
             UIDragItem(itemProvider: itemProvider)
         ]
     }
-    
+}
+
+extension EmojiTableViewController:  UITableViewDropDelegate{
     func tableView(_ tableView: UITableView, canHandle session: UIDropSession) -> Bool {
         return true
     }
@@ -71,36 +89,16 @@ class EmojiTableViewController: UITableViewController, UITableViewDragDelegate, 
                 return
             }
             let sourceIndexPath = coordinator.items.first?.sourceIndexPath
-             var updatedIndexPaths = [IndexPath]()
-            if sourceIndexPath!.row < destinationIndexPath.row {
-                updatedIndexPaths =  (sourceIndexPath!.row...destinationIndexPath.row).map { IndexPath(row: $0, section: 0) }
-            } else if sourceIndexPath!.row > destinationIndexPath.row {
-                updatedIndexPaths =  (destinationIndexPath.row...sourceIndexPath!.row).map { IndexPath(row: $0, section: 0) }
-            }
-            print( "updatedIndexPaths", updatedIndexPaths )
-            print( "-------------" )
             tableView.beginUpdates()
             self.emojiArray.remove(at: sourceIndexPath!.row )
             self.emojiArray.insert(string, at: destinationIndexPath.row)
-            //self.tableView.deleteRows(at: [sourceIndexPath!], with: .none)
-            //self.tableView.insertRows(at: [destinationIndexPath], with: .none)
-            self.tableView.reloadRows(at: updatedIndexPaths, with: .automatic)
+            self.tableView.deleteRows(at: [sourceIndexPath!], with: .none)
+            self.tableView.insertRows(at: [destinationIndexPath], with: .none)
             tableView.endUpdates()
          }
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "emojiCell", for: indexPath)
-        cell.textLabel!.text = emojiArray[ indexPath.row ]
-        return cell
-    }
-
     func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
         return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
     }
-    
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-
 }
